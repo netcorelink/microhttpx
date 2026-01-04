@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "microhttpx"
-version = "0.1.0"
+version = "0.2.0"
 description = "Lightweight HTTP server library for microcontrollers"
 readme = "README.md"
 license = { text = "MIT" }
@@ -22,8 +22,7 @@ classifiers = [
 ]
 dependencies = []
 
-urls = {
-    "Homepage" = "https://github.com/netcorelink/microhttpx",
-    "Repository" = "https://github.com/netcorelink/microhttpx",
-    "Documentation" = "https://github.com/netcorelink/microhttpx#readme"
-}
+[project.urls]
+Homepage = "https://github.com/netcorelink/microhttpx"
+Repository = "https://github.com/netcorelink/microhttpx"
+Documentation = "https://github.com/netcorelink/microhttpx#readme"

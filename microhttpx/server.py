@@ -38,7 +38,14 @@ class HttpxServer:
 
             Logger.log("SERV", "{} {} HTTP/1.1".format(method.upper(), path))
 
-            handler=self.routes.get((method.upper(),path))
+            handler = None
+            for (m, route), func in self.routes.items():
+                if m == method.upper():
+                    from .parser import HttpxParser
+                    if HttpxParser.path_params(route, path):
+                        handler = func
+                        break
+
             if not handler:
                 HttpxResponse.resp(conn, StatusNotFound(), "Page not found")
                 return
