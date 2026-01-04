@@ -30,4 +30,4 @@ def index(request):
 server.start(port=8080)
 ```
 
-microhttpx `is not a complete replacement for full-fledged server` frameworks (Flask, FastAPI, etc.)
+`microhttpx is not a complete replacement for full-fledged server frameworks (Flask, FastAPI, etc.)`

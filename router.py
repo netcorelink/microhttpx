@@ -1,23 +1,29 @@
-from httpx.request import Request
-from httpx.response import Response
-from httpx.status import StatusNotFound
-import socket
+# structures.py
+from microhttpx.structs import HttpxStruct, HttpxField
+from microhttpx.request import HttpxRequest
+from microhttpx.server import HttpxServer
 
-class Router:
-    def __init__(self):
-        self.routes=[]
+class GetUsersStruct(HttpxStruct):
+    __route__ = "/users/{uuid}"
+    __fields__ = {
+        "uuid": HttpxField(str, required=True),
+        "expand": HttpxField(str, required=False, default="basic"),
+    }
 
-    def get(self, path, handler):
-        self.routes.append(("GET", path, handler))
+    uuid: str
+    expand: str
 
-    def post(self, path, handler):
-        self.routes.append(("POST", path, handler))
+# main.py
+server = HttpxServer()
 
-    def handle(self, conn: socket, raw):
-        req=Request(raw)
+@server.route("/users/{uuid}")
+def get_user(req:HttpxRequest):
+    try:
+        user = GetUsersStruct(req)
+    except ValueError as e:
+        return {"error": str(e)}
 
-        for m, p, h in self.routes:
-            if m == req.method and p == req.path:
-                return h(conn, req)
-
-        Response.resp(conn, StatusNotFound())
+    return {
+        "uuid": user.uuid,
+        "expand": user.expand
+    }
