@@ -8,26 +8,71 @@
 
 `netcorelink/microhttpx` is a lightweight HTTP server library for microcontrollers.
 
-## Install `microhttpx`
+## Install by `pip` `microhttpx`
 
 ```bash
 pip install microhttpx
 ```
 
-For MicroPython, installation is performed by copying the library files to the device's file system.
+## Install by MicroPython `microhttpx`
+
+For MicroPython, installation is performed by copying `microhttpx/*` the library files to the device's file system.
+
+example: `microhttpx/*` - `:lib/*`
 
 ## A quick example
 
+### route
+
 ```python
-from microhttpx import HttpServer
+from microhttpx import HttpxServer, HttpxRequest
 
-server = HttpServer()
+server = HttpxServer()
 
-@server.route("/", methods=["GET"])
-def index(request):
-    return "Hello, microhttpx!"
+@server.route("/hello")
+def get_hello(req: HttpxRequest):
+  return {"ok": True, "method": req.method}
 
-server.start(port=8080)
+server.listen(port=8080)
+```
+
+### structs
+
+```python
+from microhttpx import HttpxStruct, HttpxField
+
+class GetUsersStruct(HttpxStruct):
+    __route__ = "/users/{uuid}"
+    __fields__ = {
+        "uuid": HttpxField(str, required=True),
+        "expand": HttpxField(str, required=False, default="basic"),
+    }
+
+    uuid: str
+    expand: str
+```
+
+| Argument   | Type                  | Default value | Description                                                                                                              |
+| ---------- | --------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| field_type | type                  | str           | Field type (`str`, `int`, `float`, `bool`, `etc.`). The value is automatically converted during parsing.                 |
+| required   | bool                  | False         | Is the field required. If True and the field is missing, a `ValueError` is thrown.                                       |
+| default    | any                   | None          | The default value for an optional field. is used if no value is passed.                                                  |
+| validator  | Callable[[any], bool] | None          | A function to check the value of a field. It should return `True` if the value is valid. If `False`, an error is thrown. |
+
+`usage struct in route:`
+
+```python
+@server.route("/users/{uuid}")
+def get_user(req: HttpxRequest):
+    try:
+        user = GetUsersStruct(req)
+    except ValueError as e:
+        return {"error": str(e)}
+
+    return {
+        "uuid": user.uuid,
+        "expand": user.expand
+    }
 ```
 
 `microhttpx is not a complete replacement for full-fledged server frameworks (Flask, FastAPI, etc.)`
