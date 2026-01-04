@@ -14,7 +14,7 @@
 pip install microhttpx
 ```
 
-## Install by MicroPython `microhttpx`
+## Install by `MicroPython` `microhttpx`
 
 For MicroPython, installation is performed by copying `microhttpx/*` the library files to the device's file system.
 
@@ -22,7 +22,7 @@ example: `microhttpx/*` - `:lib/*`
 
 ## A quick example
 
-### route
+### Route
 
 ```python
 from microhttpx import HttpxServer, HttpxRequest
@@ -31,12 +31,12 @@ server = HttpxServer()
 
 @server.route("/hello")
 def get_hello(req: HttpxRequest):
-  return {"ok": True, "method": req.method}
+  return "Hello, world!"
 
 server.listen(port=8080)
 ```
 
-### structs
+### Structs
 
 ```python
 from microhttpx import HttpxStruct, HttpxField

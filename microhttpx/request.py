@@ -1,4 +1,5 @@
 import urllib.parse
+from .logger import Logger
 
 class HttpxRequest:
     def __init__(self, raw:str):
@@ -33,5 +34,5 @@ class HttpxRequest:
                 for param in body.split("&"):
                     k, v = param.split("=", 1)
                     self.params[urllib.parse.unquote(k)] = urllib.parse.unquote(v)
-            except:
-                pass
+            except Exception as e:
+                Logger.error("REQUEST", "{}: {}".format(type(e).__name__, e))

@@ -1,8 +1,11 @@
+from .logger import Logger
 import socket
 
 class HttpxResponse:
     @staticmethod
     def resp(conn:socket.socket, status:str, body="", content_type="text/plain"):
+        Logger.log("SERV", "-> {} {}".format(status, len(body)))
+
         headers=(
             "HTTP/1.1 {}\r\n"
             "Content-Type: {}\r\n"

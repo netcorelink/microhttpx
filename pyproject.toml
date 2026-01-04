@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -10,3 +10,20 @@ readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "netcorelink" }]
 requires-python = ">=3.8"
+keywords = ["http", "server", "microcontroller", "micropython", "iot"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Typing :: Typed"
+]
+dependencies = []
+
+urls = {
+    "Homepage" = "https://github.com/netcorelink/microhttpx",
+    "Repository" = "https://github.com/netcorelink/microhttpx",
+    "Documentation" = "https://github.com/netcorelink/microhttpx#readme"
+}

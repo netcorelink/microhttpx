@@ -1,6 +1,7 @@
-from .status import StatusNotFound
+from .status import StatusOK, StatusNotFound
 from .request import HttpxRequest
 from .response import HttpxResponse
+from .logger import Logger
 import socket
 import json
 
@@ -20,7 +21,7 @@ class HttpxServer:
         s.bind((host, port))
         s.listen(1)
 
-        print("[SERV] server started on {}:{}".format(host, port))
+        Logger.log("SERV", "server started on {}:{}".format(host, port))
 
         while True:
             conn, _ = s.accept()
@@ -35,6 +36,8 @@ class HttpxServer:
             line = data.split("\r\n")[0]
             method, path, _ = line.split(" ")
 
+            Logger.log("SERV", "{} {} HTTP/1.1".format(method.upper(), path))
+
             handler=self.routes.get((method.upper(),path))
             if not handler:
                 HttpxResponse.resp(conn, StatusNotFound(), "Page not found")
@@ -43,10 +46,10 @@ class HttpxServer:
             result = handler(HttpxRequest(data))
 
             if isinstance(result, dict):
-                HttpxResponse.json(conn, "200 OK", json.dumps(result))
+                HttpxResponse.json(conn, StatusOK(), json.dumps(result))
             elif isinstance(result, str):
-                HttpxResponse.resp(conn, "200 OK", result)
+                HttpxResponse.resp(conn, StatusOK(), result)
             else:
-                HttpxResponse.resp(conn, "200 OK", str(result))
+                HttpxResponse.resp(conn, StatusOK(), str(result))
         finally:
             conn.close()

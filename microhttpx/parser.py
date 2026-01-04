@@ -1,5 +1,4 @@
 from urllib.parse import parse_qs, unquote
-import re
 
 class HttpxParser:
     @staticmethod
