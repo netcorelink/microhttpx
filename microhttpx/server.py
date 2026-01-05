@@ -39,20 +39,30 @@ class HttpxServer:
             Logger.log("SERV", "{} {} HTTP/1.1".format(method.upper(), path))
 
             handler = None
+            path_params = {}
+
+            from .parser import HttpxParser
             for (m, route), func in self.routes.items():
                 if m == method.upper():
-                    from .parser import HttpxParser
-                    if HttpxParser.path_params(route, path):
+                    params = HttpxParser.path_params(route, path)
+                    if params is not None:
                         handler = func
+                        path_params = params
                         break
 
             if not handler:
                 HttpxResponse.resp(conn, StatusNotFound(), "Page not found")
                 return
 
-            result = handler(HttpxRequest(data))
+            req=HttpxRequest(data)
+            req.conn=conn
+            req.params=path_params
 
-            if isinstance(result, dict):
+            result = handler(req)
+
+            if result is None:
+                return
+            elif isinstance(result, dict):
                 HttpxResponse.json(conn, StatusOK(), json.dumps(result))
             elif isinstance(result, str):
                 HttpxResponse.resp(conn, StatusOK(), result)

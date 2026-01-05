@@ -1,6 +1,12 @@
-from microhttpx.parser import HttpxParser
-from microhttpx.server import HttpxServer
 from microhttpx.structs import HttpxField, HttpxStruct
+from microhttpx.parser import HttpxParser
+import time
+
+def run_test(fn):
+    start=time.perf_counter()
+    fn()
+    duration=(time.perf_counter()-start)*1000
+    print(f"[OK] {fn.__name__} ({duration:.2f} ms)")
 
 class UserStruct(HttpxStruct):
     __route__ = "/users/{id}"
@@ -27,7 +33,8 @@ def test_parser_query():
     assert params["name"] == "netcorelink"
     assert params["project"] == "microhttpx"
 
-    print("[OK] test_parser_query")
+def test_parser_query_empty():
+    assert HttpxParser.query("/test") == {}
 
 def test_parser_body():
     body="a=1&b=hello"
@@ -36,7 +43,8 @@ def test_parser_body():
     assert params["a"]=="1"
     assert params["b"]=="hello"
 
-    print("[OK] test_parser_body")
+def test_parser_body_empty():
+    assert HttpxParser.body("") == {}
 
 def test_parser_path_params():
     route="/users/{uuid}"
@@ -46,16 +54,21 @@ def test_parser_path_params():
 
     assert params["uuid"]=="abc-123"
 
-    print("[OK] test_parser_path_params")
+def test_parser_path_params_mismatch():
+    assert HttpxParser.path_params("/users/{id}", "/posts/1") is None
 
-def test_struct():
+def test_struct_ok():
     req=HttpxMockReq("/users/42?page=3")
     user=UserStruct(req)
 
     assert user.id=="42"
     assert user.page==3
 
-    print("[OK] test_struct")
+def test_struct_default():
+    req = HttpxMockReq("/users/42")
+    user = UserStruct(req)
+
+    assert user.page == 1
 
 def test_struct_required_fail():
     try:
@@ -66,11 +79,31 @@ def test_struct_required_fail():
     except ValueError:
         print("[OK] test_struct_required_fail")
 
-if __name__=="__main__":
-    test_parser_query()
-    test_parser_body()
-    test_parser_path_params()
-    test_struct()
-    test_struct_required_fail()
+def test_struct_type_fail():
+    try:
+        UserStruct(HttpxMockReq("/users/42?page=abc"))
+        assert False, "type validation not detected"
+    except ValueError:
+        pass
 
-    print("== ALL TESTS PASSED ==")
+if __name__=="__main__":
+    tests = [
+        test_parser_query,
+        test_parser_query_empty,
+        test_parser_body,
+        test_parser_body_empty,
+        test_parser_path_params,
+        test_parser_path_params_mismatch,
+        test_struct_ok,
+        test_struct_default,
+        test_struct_required_fail,
+        test_struct_type_fail,
+    ]
+
+    start_all = time.perf_counter()
+
+    for t in tests:
+        run_test(t)
+
+    total = (time.perf_counter() - start_all) * 1000
+    print(f"\n== ALL TESTS PASSED ({total:.2f} ms) ==")

@@ -25,13 +25,14 @@ example: `microhttpx/*` - `:lib/*`
 ### Route
 
 ```python
-from microhttpx import HttpxServer, HttpxRequest
+from microhttpx.status import StatusOK
+from microhttpx import HttpxServer, HttpxRequest, HttpxResponse
 
 server = HttpxServer()
 
-@server.route("/hello")
+@server.route("/hello", methods=("GET",))
 def get_hello(req: HttpxRequest):
-  return "Hello, world!"
+  return HttpxResponse.json(req.conn, StatusOK(), {"message": "Hello, world!"})
 
 server.listen(port=8080)
 ```
@@ -69,10 +70,7 @@ def get_user(req: HttpxRequest):
     except ValueError as e:
         return {"error": str(e)}
 
-    return {
-        "uuid": user.uuid,
-        "expand": user.expand
-    }
+    return HttpxResponse.json(req.conn, StatusOK(), {"message": {"uuid": user.uuid, "expand": user.expand}})
 ```
 
 `microhttpx is not a complete replacement for full-fledged server frameworks (Flask, FastAPI, etc.)`

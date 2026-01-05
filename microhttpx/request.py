@@ -1,9 +1,10 @@
-import urllib.parse
 from .logger import Logger
+import socket
 
 class HttpxRequest:
-    def __init__(self, raw:str):
+    def __init__(self, raw:str, conn:(socket.socket|None)=None):
         self.raw=raw
+        self.conn=conn
         self.method=None
         self.path=None
         self.headers={}
@@ -11,6 +12,24 @@ class HttpxRequest:
         self.params={}
 
         self._parse()
+
+    @staticmethod
+    def _unquote(s: str) -> str:
+        s = s.replace("+", " ")
+        i = 0
+        res = ""
+        while i < len(s):
+            if s[i] == "%" and i + 2 < len(s):
+                try:
+                    res += chr(int(s[i + 1:i + 3], 16))
+                    i += 3
+                except ValueError:
+                    res += s[i]
+                    i += 1
+            else:
+                res += s[i]
+                i += 1
+        return res
 
     def _parse(self):
         parts=self.raw.split("\r\n\r\n", 1)
@@ -33,6 +52,6 @@ class HttpxRequest:
             try:
                 for param in body.split("&"):
                     k, v = param.split("=", 1)
-                    self.params[urllib.parse.unquote(k)] = urllib.parse.unquote(v)
+                    self.params[self._unquote(k)] = self._unquote(v)
             except Exception as e:
                 Logger.error("REQUEST", "{}: {}".format(type(e).__name__, e))

@@ -1,5 +1,4 @@
 from .parser import HttpxParser
-from .request import HttpxRequest
 
 class HttpxField:
     def __init__(self, field_type:type = str, required=False, default=None, validator=None):
@@ -8,17 +7,21 @@ class HttpxField:
         self.default=default
         self.validator=validator
 
-class HttpxStructMeta(type):
-    def __call__(cls, req):
-        obj=object.__new__(cls)
-        path_params=HttpxParser.path_params(cls.__route__, req.path) # type: ignore
-        query_params=HttpxParser.query(req.path)
-        body_params=HttpxParser.body(req.body)
+class HttpxStruct:
+    def __init__(self, req):
+        path_params = HttpxParser.path_params(getattr(self, "__route__", ""), getattr(req, "path", ""))
+        query_params = HttpxParser.query(getattr(req, "path", ""))
+        body_params = HttpxParser.body(getattr(req, "body", ""))
 
-        all_params = {**query_params, **body_params, **path_params}
+        all_params = {}
+        for d in (query_params, body_params, path_params):
+            if not d:
+                continue
+            for k, v in d.items():
+                all_params[k] = v
 
-        for name, field in cls.__fields__.items(): # type: ignore
-            value=all_params.get(name, None)
+        for name, field in getattr(self, "__fields__", {}).items():
+            value = all_params.get(name, None)
 
             if field.required and value is None:
                 raise ValueError(f"Field '{name}' is required")
@@ -35,13 +38,11 @@ class HttpxStructMeta(type):
             if field.validator and not field.validator(value):
                 raise ValueError(f"Field '{name}' failed validation")
 
-            setattr(obj, name, value)
+            setattr(self, name, value)
 
-        return obj
-
-class HttpxStruct(HttpxRequest, metaclass=HttpxStructMeta):
-    def __init__(self, req):
-        pass
-
-    __fields__ = {}
-    __route__ = ""
+        self.raw     = getattr(req, "raw", "")
+        self.method  = getattr(req, "method", None)
+        self.path    = getattr(req, "path", None)
+        self.headers = getattr(req, "headers", {})
+        self.body    = getattr(req, "body", "")
+        self.params  = all_params
